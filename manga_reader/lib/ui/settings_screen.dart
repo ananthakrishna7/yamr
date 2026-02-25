@@ -16,8 +16,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   void initState() {
     super.initState();
-    // Use addPostFrameCallback to avoid listening during build if needed,
-    // but reading is fine.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final service = context.read<GeminiService>();
       if (service.apiKey != null) {
@@ -32,7 +30,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       appBar: AppBar(title: const Text('Settings')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
+        child: ListView(
           children: [
             TextField(
               controller: _apiKeyController,
@@ -65,6 +63,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       subtitle: const Text('Display OCR text over images'),
                       value: settings.showOverlay,
                       onChanged: (value) => settings.setShowOverlay(value),
+                    ),
+                    SwitchListTile(
+                      title: const Text('Debug Mode'),
+                      subtitle: const Text('Show OCR bounding boxes even without text'),
+                      value: settings.debugMode,
+                      onChanged: (value) => settings.setDebugMode(value),
                     ),
                   ],
                 );

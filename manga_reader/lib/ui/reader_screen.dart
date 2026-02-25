@@ -30,10 +30,6 @@ class _ReaderScreenState extends State<ReaderScreen> {
   @override
   void initState() {
     super.initState();
-    // Check settings for immersive mode
-    // We need to wait for frame to access provider safely if listening, but context.read is fine here.
-    // However, initState happens before the widget is fully in the tree for some provider checks,
-    // but context.read is generally allowed if we don't listen.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final settings = context.read<SettingsService>();
       if (settings.immersiveMode) {
@@ -113,6 +109,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
                                       return Positioned.fill(
                                         child: OverlayLayer(
                                           blocks: page.blocks,
+                                          debugMode: settings.debugMode,
                                           onTextTap: (text) {
                                             showModalBottomSheet(
                                               context: context,
@@ -154,8 +151,6 @@ class _ReaderScreenState extends State<ReaderScreen> {
                     });
                   },
                 ),
-                // Only show controls if not immersive? Or show on tap?
-                // For now, keep them visible.
                 Positioned(
                   top: 40,
                   left: 20,

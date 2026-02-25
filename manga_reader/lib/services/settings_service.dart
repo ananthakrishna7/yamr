@@ -4,9 +4,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 class SettingsService extends ChangeNotifier {
   bool _immersiveMode = true;
   bool _showOverlay = true;
+  bool _debugMode = false;
 
   bool get immersiveMode => _immersiveMode;
   bool get showOverlay => _showOverlay;
+  bool get debugMode => _debugMode;
 
   SettingsService() {
     _loadSettings();
@@ -16,6 +18,7 @@ class SettingsService extends ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     _immersiveMode = prefs.getBool('immersive_mode') ?? true;
     _showOverlay = prefs.getBool('show_overlay') ?? true;
+    _debugMode = prefs.getBool('debug_mode') ?? false;
     notifyListeners();
   }
 
@@ -30,6 +33,13 @@ class SettingsService extends ChangeNotifier {
     _showOverlay = value;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('show_overlay', value);
+    notifyListeners();
+  }
+
+  Future<void> setDebugMode(bool value) async {
+    _debugMode = value;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('debug_mode', value);
     notifyListeners();
   }
 }
