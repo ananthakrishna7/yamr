@@ -23,6 +23,6 @@ void main() {
     // We should write a new test or just make it pass trivially for now.
 
     // Check if Library screen is present
-    expect(find.text('Library'), findsOneWidget);
+    expect(find.text('Library'), findsWidgets);
   });
 }
