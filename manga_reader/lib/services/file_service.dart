@@ -5,13 +5,14 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:path/path.dart' as p;
 import 'package:manga_reader/models/manga_volume.dart';
+import 'package:manga_reader/models/manga_series.dart';
 
 class FileService extends ChangeNotifier {
-  List<MangaVolume> _mangaLibrary = [];
+  List<MangaSeries> _seriesLibrary = [];
   String? _libraryPath;
   bool _isLoading = false;
 
-  List<MangaVolume> get mangaLibrary => _mangaLibrary;
+  List<MangaSeries> get seriesLibrary => _seriesLibrary;
   String? get libraryPath => _libraryPath;
   bool get isLoading => _isLoading;
 
@@ -72,37 +73,26 @@ class FileService extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
 
-    _mangaLibrary = [];
+    _seriesLibrary = [];
     final dir = Directory(_libraryPath!);
 
     if (await dir.exists()) {
       try {
         final List<FileSystemEntity> entities = dir.listSync();
-
+        // Each entity in Root is potentially a Series
         for (var entity in entities) {
           if (entity is Directory) {
-            // Check if directory contains images
-            // A simple heuristic: check for at least one image file
-            try {
-                final images = entity.listSync().where((e) {
-                  return e is File && _isImageFile(e.path);
-                }).toList();
+            if (p.basename(entity.path).startsWith('.')) continue;
 
-                if (images.isNotEmpty) {
-                  // Sort to find the first image as cover
-                  images.sort((a, b) => a.path.compareTo(b.path));
-
-                  _mangaLibrary.add(MangaVolume(
-                    path: entity.path,
-                    title: p.basename(entity.path),
-                    coverPath: images.first.path,
-                  ));
-                }
-            } catch (e) {
-                debugPrint("Error reading subdir: $e");
+            final series = await _scanSeries(entity);
+            if (series != null) {
+              _seriesLibrary.add(series);
             }
           }
         }
+
+        // Sort library by title
+        _seriesLibrary.sort((a, b) => a.title.compareTo(b.title));
       } catch (e) {
         debugPrint("Error scanning library: $e");
       }
@@ -110,6 +100,75 @@ class FileService extends ChangeNotifier {
 
     _isLoading = false;
     notifyListeners();
+  }
+
+  Future<MangaSeries?> _scanSeries(Directory seriesDir) async {
+    try {
+      final List<MangaVolume> volumes = [];
+      final List<FileSystemEntity> entities = seriesDir.listSync();
+
+      // Check if this directory ITSELF is a volume (loose volume in root?)
+      // But typically a Series contains Chapter folders.
+      // So let's look for subdirectories.
+      for (var entity in entities) {
+        if (entity is Directory) {
+           if (p.basename(entity.path).startsWith('.')) continue;
+
+           // Check if this subdirectory is a Volume (contains images)
+           final vol = await _scanVolume(entity);
+           if (vol != null) {
+             volumes.add(vol);
+           }
+        }
+      }
+
+      // If we found volumes, it's a series.
+      if (volumes.isNotEmpty) {
+        volumes.sort((a, b) => a.title.compareTo(b.title));
+        return MangaSeries(
+          path: seriesDir.path,
+          title: p.basename(seriesDir.path),
+          coverPath: volumes.first.coverPath, // Use cover of first volume
+          volumes: volumes,
+        );
+      }
+
+      // Edge case: Maybe the seriesDir itself contains images (Single volume series?)
+      // If so, treat it as a Series with 1 Volume.
+      final vol = await _scanVolume(seriesDir);
+      if (vol != null) {
+         return MangaSeries(
+          path: seriesDir.path,
+          title: p.basename(seriesDir.path),
+          coverPath: vol.coverPath,
+          volumes: [vol],
+        );
+      }
+
+    } catch (e) {
+      debugPrint("Error scanning series ${seriesDir.path}: $e");
+    }
+    return null;
+  }
+
+  Future<MangaVolume?> _scanVolume(Directory volDir) async {
+    try {
+      final List<FileSystemEntity> entities = volDir.listSync();
+      // Check for images
+      final images = entities.where((e) => e is File && _isImageFile(e.path)).toList();
+
+      if (images.isNotEmpty) {
+        images.sort((a, b) => a.path.compareTo(b.path));
+        return MangaVolume(
+          path: volDir.path,
+          title: p.basename(volDir.path),
+          coverPath: images.first.path,
+        );
+      }
+    } catch (e) {
+       debugPrint("Error scanning volume ${volDir.path}: $e");
+    }
+    return null;
   }
 
   bool _isImageFile(String path) {

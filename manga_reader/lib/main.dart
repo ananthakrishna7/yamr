@@ -7,6 +7,7 @@ import 'package:manga_reader/services/dictionary_service.dart';
 import 'package:manga_reader/services/flashcard_service.dart';
 import 'package:manga_reader/services/anki_service.dart';
 import 'package:manga_reader/services/gemini_service.dart';
+import 'package:manga_reader/services/settings_service.dart';
 
 void main() {
   runApp(const MangaReaderApp());
@@ -24,6 +25,7 @@ class MangaReaderApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => FlashcardService()),
         ChangeNotifierProvider(create: (_) => AnkiService()),
         ChangeNotifierProvider(create: (_) => GeminiService()),
+        ChangeNotifierProvider(create: (_) => SettingsService()),
       ],
       child: MaterialApp(
         title: 'Manga Reader',

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:manga_reader/services/file_service.dart';
 import 'package:manga_reader/ui/theme.dart';
-import 'package:manga_reader/ui/reader_screen.dart';
+import 'package:manga_reader/ui/series_screen.dart';
 
 class LibraryScreen extends StatelessWidget {
   const LibraryScreen({super.key});
@@ -52,7 +52,7 @@ class LibraryScreen extends StatelessWidget {
             );
           }
 
-          if (fileService.mangaLibrary.isEmpty) {
+          if (fileService.seriesLibrary.isEmpty) {
             return const Center(child: Text('No manga found in this folder'));
           }
 
@@ -64,15 +64,15 @@ class LibraryScreen extends StatelessWidget {
               crossAxisSpacing: 8,
               mainAxisSpacing: 8,
             ),
-            itemCount: fileService.mangaLibrary.length,
+            itemCount: fileService.seriesLibrary.length,
             itemBuilder: (context, index) {
-              final manga = fileService.mangaLibrary[index];
+              final series = fileService.seriesLibrary[index];
               return GestureDetector(
                 onTap: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => ReaderScreen(manga: manga),
+                      builder: (context) => SeriesScreen(series: series),
                     ),
                   );
                 },
@@ -83,7 +83,7 @@ class LibraryScreen extends StatelessWidget {
                     children: [
                       Expanded(
                         child: Image.file(
-                          File(manga.coverPath),
+                          File(series.coverPath),
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) =>
                               const Center(child: Icon(Icons.broken_image)),
@@ -91,11 +91,20 @@ class LibraryScreen extends StatelessWidget {
                       ),
                       Padding(
                         padding: const EdgeInsets.all(8.0),
-                        child: Text(
-                          manga.title,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              series.title,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                            Text(
+                              '${series.volumes.length} Volumes',
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                          ],
                         ),
                       ),
                     ],
