@@ -77,32 +77,9 @@ class FileService extends ChangeNotifier {
 
     if (await dir.exists()) {
       try {
-        final List<FileSystemEntity> entities = dir.listSync();
-
-        for (var entity in entities) {
-          if (entity is Directory) {
-            // Check if directory contains images
-            // A simple heuristic: check for at least one image file
-            try {
-                final images = entity.listSync().where((e) {
-                  return e is File && _isImageFile(e.path);
-                }).toList();
-
-                if (images.isNotEmpty) {
-                  // Sort to find the first image as cover
-                  images.sort((a, b) => a.path.compareTo(b.path));
-
-                  _mangaLibrary.add(MangaVolume(
-                    path: entity.path,
-                    title: p.basename(entity.path),
-                    coverPath: images.first.path,
-                  ));
-                }
-            } catch (e) {
-                debugPrint("Error reading subdir: $e");
-            }
-          }
-        }
+        await _scanRecursive(dir);
+        // Sort library by title
+        _mangaLibrary.sort((a, b) => a.title.compareTo(b.title));
       } catch (e) {
         debugPrint("Error scanning library: $e");
       }
@@ -110,6 +87,33 @@ class FileService extends ChangeNotifier {
 
     _isLoading = false;
     notifyListeners();
+  }
+
+  Future<void> _scanRecursive(Directory dir) async {
+    try {
+      final List<FileSystemEntity> entities = dir.listSync();
+
+      // Check if this directory contains images
+      final images = entities.where((e) => e is File && _isImageFile(e.path)).toList();
+
+      if (images.isNotEmpty) {
+        images.sort((a, b) => a.path.compareTo(b.path));
+        _mangaLibrary.add(MangaVolume(
+          path: dir.path,
+          title: p.basename(dir.path),
+          coverPath: images.first.path,
+        ));
+      }
+
+      for (var entity in entities) {
+        if (entity is Directory) {
+          if (p.basename(entity.path).startsWith('.')) continue;
+          await _scanRecursive(entity);
+        }
+      }
+    } catch (e) {
+      debugPrint("Error scanning subdir ${dir.path}: $e");
+    }
   }
 
   bool _isImageFile(String path) {
