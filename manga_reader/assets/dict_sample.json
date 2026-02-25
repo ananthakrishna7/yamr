@@ -1,0 +1,22 @@
+[
+  {
+    "term": "こんにちは",
+    "reading": "konnichiwa",
+    "definitions": ["hello", "good day"]
+  },
+  {
+    "term": "元気",
+    "reading": "genki",
+    "definitions": ["lively", "healthy", "energetic"]
+  },
+  {
+    "term": "猫",
+    "reading": "neko",
+    "definitions": ["cat"]
+  },
+  {
+    "term": "犬",
+    "reading": "inu",
+    "definitions": ["dog"]
+  }
+]

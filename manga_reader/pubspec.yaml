@@ -1,0 +1,34 @@
+name: manga_reader
+description: A lightweight manga reader with dictionary and Anki support.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  provider: ^6.0.5
+  path_provider: ^2.0.15
+  permission_handler: ^10.4.0
+  file_picker: ^5.3.2
+  photo_view: ^0.14.0
+  sqflite: ^2.2.8
+  path: ^1.8.3
+  archive: ^3.3.7
+  shared_preferences: ^2.1.1
+  android_intent_plus: ^4.0.0
+  http: ^1.1.0
+  google_fonts: ^5.1.0
+  cupertino_icons: ^1.0.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/
